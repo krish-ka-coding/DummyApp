@@ -1,81 +1,61 @@
 workflows:
-
-  my-workflow:
-
-    name: My workflow name
-
-    labels:
-
-      - QA
-
-      - ${TENANT_NAME}
-
-    instance_type: mac_mini_m2
-
-    max_build_duration: 60
-
-    inputs: # more information about build inputs:https://docs.codemagic.io/knowledge-codemagic/build-inputs/
-
-      name: # input ID
-
-        description: Input description
-
-        default: Codemagic
+  my-mobile-app-workflow:        # Unique ID for your workflow
+    name: Build & Deploy App     # Name displayed in the Codemagic UI
+    
+    # Swapped from mac_mini_m2 to the newer M4 machine
+    instance_type: mac_mini_m4   
+    
+    max_build_duration: 60       # Max timeout in minutes (up to 120)
 
     environment:
-
+      # Define environment variables, secret groups, and tool versions
       groups:
-
-        - group_name
-
+        - keystore_credentials   # Variable groups pulled from the Codemagic UI
       vars:
-
-        PUBLIC_ENV_VAR: "value here"
-
-      flutter: stable
-
+        PUBLIC_API_URL: "https://api.example.com"
+      flutter: stable            # Enforce specific framework/tool versions
       xcode: latest
 
     cache:
-
+      # Cache directories to speed up future builds
       cache_paths:
-
-        - ~/.pub-cache
+        - $HOME/.pub-cache
+        - $HOME/.gradle/caches
 
     triggering:
-
+      # Automate when builds should run
       events:
-
         - push
-
+        - pull_request
       branch_patterns:
-
-        - pattern: '*'
-
+        - pattern: 'main'
           include: true
 
-          source: true
-
-      cancel_previous_builds: false
-
     scripts:
-
-      - echo "Hello, ${{ inputs.name }}"
-
-      - ...
+      # Sequential steps/commands executed on the build runner
+      - name: Fetch dependencies
+        script: |
+          flutter pub get
+      - name: Run Tests
+        script: |
+          flutter test
+      - name: Build Android Application
+        script: |
+          flutter build apk --release
+      - name: Build iOS Application
+        script: |
+          # Added to generate the .ipa file you requested in artifacts
+          flutter build ipa --release --no-codesign 
 
     artifacts:
-
-      - build/**/outputs/bundle/**/*.aab
+      # Specify which generated files to save and show in the UI
+      - build/app/outputs/flutter-apk/*_release.apk
+      - build/ios/iphoneos/*.ipa
 
     publishing:
-
+      # Automate distribution to stores or communication channels
       email:
-
         recipients:
-
-          - name@example.com
-
-      scripts:
-
-        - echo 'Post-publish script'
+          - dev-team@example.com
+      slack:
+        channel_url: "https://hooks.slack.com/services/..."
