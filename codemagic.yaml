@@ -1,13 +1,13 @@
 workflows:
   react-native-build:
-    name: Build & Deploy React Native
+    name: React Native Android & iOS
 
     instance_type: mac_mini_m2
     max_build_duration: 60
 
     environment:
-      xcode: latest
       node: 20
+      xcode: latest
 
     cache:
       cache_paths:
@@ -15,28 +15,16 @@ workflows:
         - ~/.gradle/caches
         - ios/Pods
 
-    triggering:
-      events:
-        - push
-        - pull_request
-      branch_patterns:
-        - pattern: main
-          include: true
-
     scripts:
       - name: Install Node dependencies
         script: |
-          npm install
+          npm ci || npm install
 
       - name: Install CocoaPods
         script: |
           cd ios
           pod install
           cd ..
-
-      - name: Run tests (optional)
-        script: |
-          npm test || true
 
       - name: Build Android APK
         script: |
@@ -50,11 +38,28 @@ workflows:
           chmod +x gradlew
           ./gradlew bundleRelease
 
+      - name: Archive iOS App
+        script: |
+          cd ios
+
+          xcodebuild \
+            -workspace dummyApp.xcworkspace \
+            -scheme dummyApp \
+            -configuration Release \
+            -archivePath build/dummyApp.xcarchive \
+            archive
+
+      - name: Export IPA
+        script: |
+          cd ios
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath build/dummyApp.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build
+
     artifacts:
       - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/*.aab
-
-    publishing:
-      email:
-        recipients:
-          - your-email@example.com
+      - ios/build/**/*.ipa
