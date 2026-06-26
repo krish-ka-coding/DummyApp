@@ -28,19 +28,24 @@ workflows:
     scripts:
       - name: Fetch dependencies
         script: |
-          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
+          # Robust search and change directory that avoids syntax errors
+          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
+          cd "$TARGET_DIR"
           flutter pub get
       - name: Run Tests
         script: |
-          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
+          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
+          cd "$TARGET_DIR"
           flutter test
       - name: Build Android Application
         script: |
-          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
+          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
+          cd "$TARGET_DIR"
           flutter build apk --release
       - name: Build iOS Application
         script: |
-          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
+          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
+          cd "$TARGET_DIR"
           flutter build ipa --release --no-codesign
 
     artifacts:
