@@ -1,10 +1,7 @@
 workflows:
   my-mobile-app-workflow:        # Unique ID for your workflow
     name: Build & Deploy App     # Name displayed in the Codemagic UI
-    
-    # Swapped from mac_mini_m2 to the newer M4 machine
-    instance_type: mac_mini_m4   
-    
+    instance_type: mac_mini_m4   # Upgraded to Apple Silicon M4 instance
     max_build_duration: 60       # Max timeout in minutes (up to 120)
 
     environment:
@@ -44,8 +41,7 @@ workflows:
           flutter build apk --release
       - name: Build iOS Application
         script: |
-          # Added to generate the .ipa file you requested in artifacts
-          flutter build ipa --release --no-codesign 
+          flutter build ipa --release --no-codesign
 
     artifacts:
       # Specify which generated files to save and show in the UI
@@ -58,4 +54,4 @@ workflows:
         recipients:
           - dev-team@example.com
       slack:
-        channel_url: "https://hooks.slack.com/services/..."
+        channel: "https://hooks.slack.com/services/..." # Fixed schema error here
