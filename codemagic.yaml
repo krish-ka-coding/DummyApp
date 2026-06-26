@@ -1,7 +1,10 @@
 workflows:
   my-mobile-app-workflow:        # Unique ID for your workflow
     name: Build & Deploy App     # Name displayed in the Codemagic UI
-    instance_type: mac_mini_m4   # Upgraded to Apple Silicon M4 instance
+    
+    # Reverted to M2 to resolve the billing plan limitation
+    instance_type: mac_mini_m2   
+    
     max_build_duration: 60       # Max timeout in minutes (up to 120)
 
     environment:
@@ -54,4 +57,4 @@ workflows:
         recipients:
           - dev-team@example.com
       slack:
-        channel: "https://hooks.slack.com/services/..." # Fixed schema error here
+        channel: "https://hooks.slack.com/services/..."
