@@ -1,11 +1,11 @@
 workflows:
   my-mobile-app-workflow:        # Unique ID for your workflow
     name: Build & Deploy App     # Name displayed in the Codemagic UI
-    
-    # Reverted to M2 to resolve the billing plan limitation
-    instance_type: mac_mini_m2   
-    
+    instance_type: mac_mini_m2   # M2 instance standard tier
     max_build_duration: 60       # Max timeout in minutes (up to 120)
+
+    # Points Codemagic to the subfolder where your Flutter code lives
+    working_directory: DummyApp  
 
     environment:
       # Define environment variables, secret groups, and tool versions
@@ -48,8 +48,8 @@ workflows:
 
     artifacts:
       # Specify which generated files to save and show in the UI
-      - build/app/outputs/flutter-apk/*_release.apk
-      - build/ios/iphoneos/*.ipa
+      - DummyApp/build/app/outputs/flutter-apk/*_release.apk
+      - DummyApp/build/ios/iphoneos/*.ipa
 
     publishing:
       # Automate distribution to stores or communication channels
