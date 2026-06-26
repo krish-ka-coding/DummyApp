@@ -28,24 +28,29 @@ workflows:
     scripts:
       - name: Fetch dependencies
         script: |
-          # Robust search and change directory that avoids syntax errors
-          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
-          cd "$TARGET_DIR"
+          # Find pubspec.yaml anywhere in the workspace recursively
+          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
+          if [ -z "$PUBSPEC_PATH" ]; then
+            echo "--- ERROR: pubspec.yaml not found! Printing repository structure to debug ---"
+            ls -R
+            exit 1
+          fi
+          cd "$(dirname "$PUBSPEC_PATH")"
           flutter pub get
       - name: Run Tests
         script: |
-          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
-          cd "$TARGET_DIR"
+          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
+          cd "$(dirname "$PUBSPEC_PATH")"
           flutter test
       - name: Build Android Application
         script: |
-          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
-          cd "$TARGET_DIR"
+          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
+          cd "$(dirname "$PUBSPEC_PATH")"
           flutter build apk --release
       - name: Build iOS Application
         script: |
-          TARGET_DIR=$(find . -name "pubspec.yaml" -maxdepth 3 -exec dirname {} \; | head -n 1)
-          cd "$TARGET_DIR"
+          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
+          cd "$(dirname "$PUBSPEC_PATH")"
           flutter build ipa --release --no-codesign
 
     artifacts:
