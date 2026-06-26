@@ -4,11 +4,7 @@ workflows:
     instance_type: mac_mini_m2   # M2 instance standard tier
     max_build_duration: 60       # Max timeout in minutes (up to 120)
 
-    # Points Codemagic to the subfolder where your Flutter code lives
-    working_directory: DummyApp  
-
     environment:
-      # Define environment variables, secret groups, and tool versions
       groups:
         - keystore_credentials   # Variable groups pulled from the Codemagic UI
       vars:
@@ -17,13 +13,11 @@ workflows:
       xcode: latest
 
     cache:
-      # Cache directories to speed up future builds
       cache_paths:
         - $HOME/.pub-cache
         - $HOME/.gradle/caches
 
     triggering:
-      # Automate when builds should run
       events:
         - push
         - pull_request
@@ -32,27 +26,28 @@ workflows:
           include: true
 
     scripts:
-      # Sequential steps/commands executed on the build runner
       - name: Fetch dependencies
         script: |
+          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
           flutter pub get
       - name: Run Tests
         script: |
+          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
           flutter test
       - name: Build Android Application
         script: |
+          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
           flutter build apk --release
       - name: Build iOS Application
         script: |
+          cd $(dirname $(find . -name "pubspec.yaml" -maxdepth 3 | head -n 1))
           flutter build ipa --release --no-codesign
 
     artifacts:
-      # Specify which generated files to save and show in the UI
-      - DummyApp/build/app/outputs/flutter-apk/*_release.apk
-      - DummyApp/build/ios/iphoneos/*.ipa
+      - "**/build/app/outputs/flutter-apk/*_release.apk"
+      - "**/build/ios/iphoneos/*.ipa"
 
     publishing:
-      # Automate distribution to stores or communication channels
       email:
         recipients:
           - dev-team@example.com
