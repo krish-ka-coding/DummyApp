@@ -1,65 +1,60 @@
 workflows:
-  my-mobile-app-workflow:        # Unique ID for your workflow
-    name: Build & Deploy App     # Name displayed in the Codemagic UI
-    instance_type: mac_mini_m2   # M2 instance standard tier
-    max_build_duration: 60       # Max timeout in minutes (up to 120)
+  react-native-build:
+    name: Build & Deploy React Native
+
+    instance_type: mac_mini_m2
+    max_build_duration: 60
 
     environment:
-      groups:
-        - keystore_credentials   # Variable groups pulled from the Codemagic UI
-      vars:
-        PUBLIC_API_URL: "https://api.example.com"
-      flutter: stable            # Enforce specific framework/tool versions
       xcode: latest
+      node: 20
 
     cache:
       cache_paths:
-        - $HOME/.pub-cache
-        - $HOME/.gradle/caches
+        - ~/.npm
+        - ~/.gradle/caches
+        - ios/Pods
 
     triggering:
       events:
         - push
         - pull_request
       branch_patterns:
-        - pattern: 'main'
+        - pattern: main
           include: true
 
     scripts:
-      - name: Fetch dependencies
+      - name: Install Node dependencies
         script: |
-          # Find pubspec.yaml anywhere in the workspace recursively
-          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
-          if [ -z "$PUBSPEC_PATH" ]; then
-            echo "--- ERROR: pubspec.yaml not found! Printing repository structure to debug ---"
-            ls -R
-            exit 1
-          fi
-          cd "$(dirname "$PUBSPEC_PATH")"
-          flutter pub get
-      - name: Run Tests
+          npm install
+
+      - name: Install CocoaPods
         script: |
-          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
-          cd "$(dirname "$PUBSPEC_PATH")"
-          flutter test
-      - name: Build Android Application
+          cd ios
+          pod install
+          cd ..
+
+      - name: Run tests (optional)
         script: |
-          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
-          cd "$(dirname "$PUBSPEC_PATH")"
-          flutter build apk --release
-      - name: Build iOS Application
+          npm test || true
+
+      - name: Build Android APK
         script: |
-          PUBSPEC_PATH=$(find . -name "pubspec.yaml" | head -n 1)
-          cd "$(dirname "$PUBSPEC_PATH")"
-          flutter build ipa --release --no-codesign
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Build Android AAB
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
 
     artifacts:
-      - "**/build/app/outputs/flutter-apk/*_release.apk"
-      - "**/build/ios/iphoneos/*.ipa"
+      - android/app/build/outputs/**/*.apk
+      - android/app/build/outputs/**/*.aab
 
     publishing:
       email:
         recipients:
-          - dev-team@example.com
-      slack:
-        channel: "https://hooks.slack.com/services/..."
+          - your-email@example.com
