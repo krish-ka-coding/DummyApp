@@ -1,0 +1,13 @@
+{
+  "name": "ios-web-simulator",
+  "version": "1.0.0",
+  "description": "High-fidelity iOS Web Simulator and dummy application.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server ./ -p 3000"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
