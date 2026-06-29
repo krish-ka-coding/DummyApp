@@ -38,7 +38,7 @@ workflows:
           chmod +x gradlew
           ./gradlew bundleRelease
 
-      - name: Archive iOS App
+      - name: Archive iOS (No Signing)
         script: |
           cd ios
 
@@ -46,20 +46,45 @@ workflows:
             -workspace dummyApp.xcworkspace \
             -scheme dummyApp \
             -configuration Release \
+            -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            DEVELOPMENT_TEAM="" \
             -archivePath build/dummyApp.xcarchive \
             archive
 
-      - name: Export IPA
+      - name: Export IPA (No Signing)
         script: |
           cd ios
+
+          cat > ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+          "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>method</key>
+              <string>development</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>stripSwiftSymbols</key>
+              <true/>
+              <key>compileBitcode</key>
+              <false/>
+          </dict>
+          </plist>
+          EOF
 
           xcodebuild \
             -exportArchive \
             -archivePath build/dummyApp.xcarchive \
+            -exportPath build \
             -exportOptionsPlist ExportOptions.plist \
-            -exportPath build
+            CODE_SIGNING_ALLOWED=NO
 
     artifacts:
       - android/app/build/outputs/**/*.apk
       - android/app/build/outputs/**/*.aab
       - ios/build/**/*.ipa
+      - ios/build/**/*.xcarchive
